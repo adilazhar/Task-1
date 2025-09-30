@@ -1,5 +1,9 @@
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:task_1/domain/user.dart';
+import 'package:task_1/providers/shared_preferences.dart';
+
+part 'user_repository.g.dart';
 
 class UserRepository {
   final String _userKey = 'user';
@@ -21,4 +25,10 @@ class UserRepository {
   Future<void> deleteUser() async {
     await _preferences.remove(_userKey);
   }
+}
+
+@Riverpod(keepAlive: true)
+UserRepository userRepository(Ref ref) {
+  final preferences = ref.watch(sharedPrefProvider);
+  return UserRepository(preferences);
 }
