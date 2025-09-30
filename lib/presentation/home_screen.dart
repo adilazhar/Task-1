@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_1/controller/forms_controller.dart';
@@ -13,14 +15,19 @@ class HomeScreen extends ConsumerWidget {
         .read(formsControllerProvider.notifier)
         .logout();
     if (isLoggedOut) {
+      log('User logged out successfully');
       if (context.mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const LoginScreen(),
-          ),
-          (route) => false,
-        );
+        log('Navigating to LoginScreen');
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          log('Post frame callback executed');
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const LoginScreen(),
+            ),
+            (route) => false,
+          );
+        });
       }
     }
   }

@@ -8,6 +8,6 @@ part 'splash_screen_controller.g.dart';
 FutureOr<User?> splashScreenController(Ref ref) async {
   await Future.delayed(const Duration(seconds: 3));
   final repo = ref.watch(userRepositoryProvider);
-  final user = await repo.getUser();
+  final user = await repo.getCurrentUser();
   return user;
 }
