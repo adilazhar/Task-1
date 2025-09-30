@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:go_router/go_router.dart';
 import 'package:task_1/controller/sign_up_screen_controller.dart';
 import 'package:task_1/domain/user.dart';
+import 'package:task_1/router/app_router.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -38,6 +40,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
     final isLoading = ref.watch(signUpScreenControllerProvider).isLoading;
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          onPressed: () => context.goNamed(AppRoute.login.name),
+          icon: Icon(Icons.arrow_back),
+        ),
         title: Text('SignUp'),
         centerTitle: true,
       ),

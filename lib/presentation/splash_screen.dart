@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:task_1/controller/splash_screen_controller.dart';
@@ -9,7 +7,6 @@ class SplashScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    log('Splash Screen Built');
     final state = ref.watch(splashScreenControllerProvider);
     return Scaffold(
       body: Center(

@@ -30,7 +30,8 @@ class UserRepository {
   // getCurrentUser()
   Future<User?> getCurrentUser() async {
     final currentUserJson = await _preferences.getString(_currentUserKey);
-    if (currentUserJson == null) return null;
+    // currentUserJson='';
+    if (currentUserJson == null || currentUserJson.isEmpty) return null;
     return User.fromJson(currentUserJson);
   }
 
