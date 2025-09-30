@@ -4,13 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
-import 'package:task_1/controller/forms_controller.dart';
+import 'package:go_router/go_router.dart';
+import 'package:task_1/controller/login_screen_controller.dart';
 import 'package:task_1/domain/user.dart';
-import 'package:task_1/presentation/home_screen.dart';
-import 'package:task_1/presentation/signup_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
-  const LoginScreen({super.key});
+  const LoginScreen({this.accountCreated = false, super.key});
+
+  final bool accountCreated;
 
   @override
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
@@ -22,46 +23,46 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void onSubmit() async {
     if (_formKey.currentState?.saveAndValidate() ?? false) {
       final formData = _formKey.currentState?.value;
-      final isPresent = await ref
-          .read(formsControllerProvider.notifier)
+      await ref
+          .read(loginScreenControllerProvider.notifier)
           .login(
             User(
               email: formData?['email'],
               pass: formData?['pass'],
             ),
           );
-      if (isPresent) {
-        if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomeScreen(formData?['email']),
-              ),
-            );
-          });
-        }
-      }
     } else {
       log('Validation failed');
     }
   }
 
   void goToSignUp() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) {
-          return SignupScreen();
-        },
-      ),
+    context.go('/signup');
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.accountCreated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showAccountCreatedSnackBar();
+      });
+    }
+  }
+
+  void showAccountCreatedSnackBar() {
+    final snackBar = SnackBar(
+      content: Text('Account created successfully! Please log in.'),
+      backgroundColor: Colors.green,
     );
+    ScaffoldMessenger.of(context).clearSnackBars();
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AsyncValue>(
-      formsControllerProvider,
+    ref.listen<AsyncValue<void>>(
+      loginScreenControllerProvider,
       (_, state) {
         if (state is AsyncError) {
           final error = state.error;
@@ -69,10 +70,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             content: Text(error.toString()),
             backgroundColor: Colors.red,
           );
+          ScaffoldMessenger.of(context).clearSnackBars();
           ScaffoldMessenger.of(context).showSnackBar(snackBar);
         }
       },
     );
+
+    final isLoading = ref.watch(loginScreenControllerProvider).isLoading;
     return Scaffold(
       appBar: AppBar(
         title: Text('Login'),
@@ -89,6 +93,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               Text('Login To Your Account', style: TextStyle(fontSize: 24)),
               FormBuilderTextField(
                 name: 'email',
+                enabled: !isLoading,
                 decoration: InputDecoration(
                   labelText: 'Email',
                   border: OutlineInputBorder(),
@@ -100,6 +105,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               ),
               FormBuilderTextField(
                 name: 'pass',
+                enabled: !isLoading,
+
                 decoration: InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(),
@@ -113,8 +120,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: onSubmit,
-                  child: Text('Login'),
+                  onPressed: isLoading ? null : onSubmit,
+                  child: isLoading
+                      ? CircularProgressIndicator()
+                      : Text('Login'),
                 ),
               ),
               TextButton(

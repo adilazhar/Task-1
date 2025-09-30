@@ -1,13 +1,11 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
-import 'package:task_1/controller/forms_controller.dart';
+import 'package:task_1/controller/sign_up_screen_controller.dart';
 import 'package:task_1/domain/user.dart';
-import 'package:task_1/presentation/home_screen.dart';
 
 class SignupScreen extends ConsumerStatefulWidget {
   const SignupScreen({super.key});
@@ -22,26 +20,14 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
   void onSubmit() async {
     if (_formKey.currentState?.saveAndValidate() ?? false) {
       final formData = _formKey.currentState?.value;
-      final isSaved = await ref
-          .read(formsControllerProvider.notifier)
+      await ref
+          .read(signUpScreenControllerProvider.notifier)
           .signUp(
             User(
               email: formData?['email'],
               pass: formData?['pass'],
             ),
           );
-      if (isSaved) {
-        if (mounted) {
-          SchedulerBinding.instance.addPostFrameCallback((_) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomeScreen(formData?['email']),
-              ),
-            );
-          });
-        }
-      }
     } else {
       log('Validation failed');
     }
@@ -49,6 +35,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(signUpScreenControllerProvider).isLoading;
     return Scaffold(
       appBar: AppBar(
         title: Text('SignUp'),
@@ -65,6 +52,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               Text('Create Account', style: TextStyle(fontSize: 24)),
               FormBuilderTextField(
                 name: 'email',
+                enabled: !isLoading,
                 decoration: InputDecoration(
                   labelText: 'Email',
                   border: OutlineInputBorder(),
@@ -76,6 +64,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               ),
               FormBuilderTextField(
                 name: 'pass',
+                enabled: !isLoading,
                 decoration: InputDecoration(
                   labelText: 'Password',
                   border: OutlineInputBorder(),
@@ -89,8 +78,10 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: onSubmit,
-                  child: Text('Sign Up'),
+                  onPressed: isLoading ? null : onSubmit,
+                  child: isLoading
+                      ? CircularProgressIndicator()
+                      : Text('Sign Up'),
                 ),
               ),
             ],
